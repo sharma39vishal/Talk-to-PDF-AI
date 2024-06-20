@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 PDF Chatbot</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="container mx-auto px-4 py-8 max-w-lg">
+        <h1 class="text-3xl font-bold mb-4">🤖 PDF Chatbot</h1>
+        <div class="chat-box bg-white rounded-lg shadow-md overflow-y-auto h-80 mb-4 px-4 py-2">
+            <!-- Chat messages will be dynamically added here -->
+        </div>
+        <div class="flex items-center space-x-4">
+            <input type="text" id="questionInput" placeholder="Enter your question..." class="flex-grow border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500">
+            <button onclick="sendMessage()" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 focus:outline-none focus:bg-blue-600">Send</button>
+        </div>
+    </div>
+
+    <script>
+        const chatBox = document.querySelector('.chat-box');
+        const questionInput = document.getElementById('questionInput');
+
+        function sendMessage() {
+            const question = questionInput.value.trim();
+            if (question !== '') {
+                appendMessage('You', question, 'user-message');
+                questionInput.value = '';
+
+                fetch('http://127.0.0.1:5000/ask', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ question: question })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    const answer = data.answer;
+                    appendMessage('Bot', answer, 'bot-message');
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    appendMessage('Bot', 'Sorry, there was an error processing your request.', 'bot-message');
+                });
+            }
+        }
+
+        function appendMessage(sender, message, className) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message', className, 'bg-gray-200', 'rounded-lg', 'p-2', 'mb-2');
+            messageElement.innerHTML = `<strong class="font-semibold">${sender}:</strong> ${message}`;
+            chatBox.appendChild(messageElement);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+    </script>
+</body>
+</html>
